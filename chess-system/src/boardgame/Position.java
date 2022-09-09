@@ -36,9 +36,6 @@ public class Position {
 	// sobrescrita do toString para imprimir os dados do objeto
 	@Override
 	public String toString() {
-
 		return this.row + ", " + this.column;
-
 	}
-
 }
