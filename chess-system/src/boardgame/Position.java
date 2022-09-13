@@ -38,4 +38,10 @@ public class Position {
 	public String toString() {
 		return this.row + ", " + this.column;
 	}
+
+	// método que atribui novos valores para linha e coluna simultaneamente
+	public void setValues(int row, int column) {
+		this.row = row;
+		this.column = column;
+	}
 }

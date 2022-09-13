@@ -20,4 +20,11 @@ public class King extends ChessPiece {
 		return "K";
 	}
 
+	// método que calcula uma matriz booleana dos movimentos possíveis para a peça
+	@Override
+	public boolean[][] possibleMoves() {
+		
+		boolean[][] mat = new boolean[this.getBoard().getRows()][this.getBoard().getColumns()];
+		return mat;
+	}
 }

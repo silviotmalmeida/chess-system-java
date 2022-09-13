@@ -43,13 +43,27 @@ public class ChessMatch {
 		return mat;
 	}
 
-	// método responsável por verificar se existe alguma peça na posição inicial da
-	// jogada
+	// método responsável por verificar a validade da posição de origem da jogada
 	private void validateSourcePosition(Position position) {
 
 		// se não existir peça, lança uma exceção
 		if (!this.board.thereIsAPiece(position)) {
 			throw new ChessException("There is no piece on source position");
+		}
+
+		// se existir a peça, porém sem movimentos possíveis, lança uma exceção
+		if (!this.board.piece(position).isThereAnyPossibleMove()) {
+			throw new ChessException("There is no possible moves for the chosen piece");
+		}
+	}
+
+	// método responsável por verificar a validade da posição de destino da jogada
+	private void validateTargetPosition(Position source, Position target) {
+
+		// se a posição de destino não estiver disponível na matriz de movimentos
+		// possíveis, lança uma exceção
+		if (!this.board.piece(source).possibleMove(target)) {
+			throw new ChessException("The chosen piece can't move to target position");
 		}
 	}
 
@@ -79,8 +93,11 @@ public class ChessMatch {
 		// convertendo a posição final para coordenadas da matriz
 		Position target = targetPosition.toPosition();
 
-		// validando se na posição inicial existe alguma peça
+		// validando as condições da posição de origem
 		this.validateSourcePosition(source);
+
+		// validando as condições da posição de destino
+		this.validateTargetPosition(source, target);
 
 		// realizando a jogada e retornando a peça capturada, se existir
 		Piece capturedPiece = this.makeMove(source, target);
