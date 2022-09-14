@@ -1,6 +1,8 @@
 package application;
 
+import java.util.ArrayList;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Scanner;
 
 import chess.ChessException;
@@ -18,6 +20,9 @@ public class Program {
 		// criando a partida de xadrez
 		ChessMatch chessMatch = new ChessMatch();
 
+		// criando a lista de peças capturadas
+		List<ChessPiece> captured = new ArrayList<>();
+
 		while (true) {
 
 			// tratando as exceções
@@ -27,17 +32,35 @@ public class Program {
 				UI.clearScreen();
 
 				// imprimindo o tabuleiro da partida
-				UI.printBoard(chessMatch.getPieces());
+				UI.printMatch(chessMatch, captured);
 
+				// solicitando a posição de origem da jogada
 				System.out.println();
 				System.out.println("Source:");
 				ChessPosition source = UI.readChessPosition(sc);
 
+				// obtendo as posições de destino possíveis
+				boolean[][] possibleMoves = chessMatch.possibleMoves(source);
+
+				// limpando a tela
+				UI.clearScreen();
+
+				// imprimindo o tabuleiro da partida com as posições de destino possíveis
+				UI.printBoard(chessMatch.getPieces(), possibleMoves);
+
+				// solicitando a posição de destino da jogada
 				System.out.println();
 				System.out.println("Target:");
 				ChessPosition target = UI.readChessPosition(sc);
 
+				// realizando a jogada
 				ChessPiece capturedPiece = chessMatch.performChessMove(source, target);
+
+				// se existir peça adversária capturada, adiciona-a na lista de peças capturadas
+				if (capturedPiece != null) {
+					captured.add(capturedPiece);
+				}
+
 			}
 			// no caso de ChessException, imprime e aguarda o Enter
 			catch (ChessException e) {

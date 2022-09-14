@@ -1,5 +1,8 @@
 package chess;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import boardgame.Board;
 import boardgame.Piece;
 import boardgame.Position;
@@ -12,15 +15,43 @@ public class ChessMatch {
 	// tabuleiro
 	private Board board;
 
+	// número do turno
+	private int turn;
+
+	// jogador atual
+	private Color currentPlayer;
+
+	// lista de peças no tabuleiro
+	private List<Piece> piecesOnTheBoard = new ArrayList<>();
+
+	// lista de peças capturadas
+	private List<Piece> capturedPieces = new ArrayList<>();
+
 	// construtor
 	public ChessMatch() {
 
 		// criando o tabuleiro padrão 8x8
 		this.board = new Board(8, 8);
 
+		// inicializando o turno
+		this.turn = 1;
+
+		// definindo o jogador inicial
+		this.currentPlayer = Color.WHITE;
+
 		// colocando as peças na posição inicial
 		this.initialSetup();
 	}
+
+	// início dos getters and setters
+	public int getTurn() {
+		return turn;
+	}
+
+	public Color getCurrentPlayer() {
+		return currentPlayer;
+	}
+	// fim dos getters and setters
 
 	// método responsável por retornar a matriz de peças no tabuleiro
 	public ChessPiece[][] getPieces() {
@@ -49,6 +80,11 @@ public class ChessMatch {
 		// se não existir peça, lança uma exceção
 		if (!this.board.thereIsAPiece(position)) {
 			throw new ChessException("There is no piece on source position");
+		}
+
+		// se existir a peça, porém for do outro jogador, lança uma exceção
+		if (this.currentPlayer != ((ChessPiece) this.board.piece(position)).getColor()) {
+			throw new ChessException("The chosen piece is not yours");
 		}
 
 		// se existir a peça, porém sem movimentos possíveis, lança uma exceção
@@ -80,8 +116,43 @@ public class ChessMatch {
 		// colocando a peça movida na posição final
 		this.board.placePiece(p, target);
 
+		// se existir peça capturada,
+		if (capturedPiece != null) {
+
+			// remove da lista de peças no tabuleiro
+			this.piecesOnTheBoard.remove(capturedPiece);
+
+			// adiciona na lista de peças capturadas
+			this.capturedPieces.add(capturedPiece);
+		}
+
 		// retornando a peça capturada, se existir
 		return capturedPiece;
+	}
+
+	// método responsável por retornar a matriz booleana dos movimentos possíveis
+	// para a peça a partir de uma posição do tabuleiro
+	public boolean[][] possibleMoves(ChessPosition sourcePosition) {
+
+		// convertendo a posição do tabuleiro de xadrez para a matriz
+		Position position = sourcePosition.toPosition();
+
+		// validando a posição de origem
+		this.validateSourcePosition(position);
+
+		// retornando a matriz
+		return this.board.piece(position).possibleMoves();
+
+	}
+
+	// método responsável por realizar a troca de turno entre os jogadores
+	private void nextTurn() {
+
+		// incrementando o número do turno
+		this.turn++;
+
+		// alterando o jogador atual
+		this.currentPlayer = (this.currentPlayer == Color.WHITE) ? Color.BLACK : Color.WHITE;
 	}
 
 	// método responsável por realizar uma jogada no xadrez
@@ -102,14 +173,19 @@ public class ChessMatch {
 		// realizando a jogada e retornando a peça capturada, se existir
 		Piece capturedPiece = this.makeMove(source, target);
 
+		// trocando o turno
+		this.nextTurn();
+
 		// retornando a peça capturada, se existir
 		return (ChessPiece) capturedPiece;
 
 	}
 
-	// método responsável por posicionar uma nova peça no tabuleiro
+	// método responsável por posicionar uma nova peça no tabuleiro, bem como na
+	// lista de peças
 	private void placeNewPiece(char column, int row, ChessPiece piece) {
 		this.board.placePiece(piece, new ChessPosition(column, row).toPosition());
+		this.piecesOnTheBoard.add(piece);
 	}
 
 	// método responsável por colocar as peças em seus devidos lugares iniciais
