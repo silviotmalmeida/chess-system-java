@@ -41,7 +41,7 @@ public class ChessPosition {
 
 	// método responsável por converter as coordenadas da matriz para o padrão xadez
 	protected static ChessPosition fromPosition(Position position) {
-		return new ChessPosition((char) ('a' - position.getColumn()), 8 - position.getRow());
+		return new ChessPosition((char) ('a' + position.getColumn()), 8 - position.getRow());
 	}
 
 	// sobrescrita do toString para imprimir a posição

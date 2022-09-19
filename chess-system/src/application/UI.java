@@ -151,15 +151,36 @@ public class UI {
 	// método responsável por imprimir os dados da partida
 	public static void printMatch(ChessMatch chessMatch, List<ChessPiece> captured) {
 
+		// imprimindo o tabuleiro e as peças
 		printBoard(chessMatch.getPieces());
 
+		// imprimindo as peças capturadas
 		printCapturedPieces(captured);
 
 		System.out.println();
 
+		// imprimindo o turno
 		System.out.println("Turn : " + chessMatch.getTurn());
 
-		System.out.println("Waiting player : " + chessMatch.getCurrentPlayer());
+		// se a partida não entrou em cheque-mate
+		if (!chessMatch.getCheckMate()) {
+
+			// imprime o jogador atual
+			System.out.println("Waiting player : " + chessMatch.getCurrentPlayer());
+
+			// se o jogador atual estiver em cheque, imprime o alerta
+			if (chessMatch.getCheck()) {
+				System.out.println("CHECK!");
+			}
+		}
+		// senão
+		else {
+			// imprime o alerta
+			System.out.println("CHECKMATE!");
+
+			// declara o vencedor
+			System.out.println("Winner: " + chessMatch.getCurrentPlayer());
+		}
 
 	}
 

@@ -23,7 +23,8 @@ public class Program {
 		// criando a lista de peças capturadas
 		List<ChessPiece> captured = new ArrayList<>();
 
-		while (true) {
+		// enquanto a partida não entrar em cheque-mate
+		while (!chessMatch.getCheckMate()) {
 
 			// tratando as exceções
 			try {
@@ -73,6 +74,12 @@ public class Program {
 				sc.nextLine();
 			}
 		}
+
+		// limpando a tela
+		UI.clearScreen();
+
+		// imprimindo o tabuleiro da partida finalizada
+		UI.printMatch(chessMatch, captured);
 
 	}
 
