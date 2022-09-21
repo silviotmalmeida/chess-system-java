@@ -7,8 +7,11 @@ import java.util.stream.Collectors;
 import boardgame.Board;
 import boardgame.Piece;
 import boardgame.Position;
+import chess.pieces.Bishop;
 import chess.pieces.King;
+import chess.pieces.Knight;
 import chess.pieces.Pawn;
+import chess.pieces.Queen;
 import chess.pieces.Rook;
 
 // classe que representa uma partida de xadrez
@@ -34,6 +37,9 @@ public class ChessMatch {
 
 	// flag que indica se a partida está em cheque-mate
 	private boolean checkMate;
+
+	// registro de peão vulnerável à jogada en Passant
+	private ChessPiece enPassantVulnerable;
 
 	// construtor
 	public ChessMatch() {
@@ -72,6 +78,10 @@ public class ChessMatch {
 
 	public boolean getCheckMate() {
 		return checkMate;
+	}
+
+	public ChessPiece getEnPassantVulnerable() {
+		return enPassantVulnerable;
 	}
 	// fim dos getters and setters
 
@@ -151,8 +161,67 @@ public class ChessMatch {
 			this.capturedPieces.add(capturedPiece);
 		}
 
+		// caso a jogada tenha sido o roque pequeno, a torre direita tem que ser movida
+		// (rei moveu-se horizontalmente duas posições)
+		if (p instanceof King && target.getColumn() == source.getColumn() + 2) {
+
+			// definindo as posições de origem e destino da torre direita
+			Position sourceRook = new Position(source.getRow(), source.getColumn() + 3);
+			Position targetRook = new Position(source.getRow(), source.getColumn() + 1);
+
+			// movendo a torre direita
+			ChessPiece rook = (ChessPiece) this.board.removePiece(sourceRook);
+			this.board.placePiece(rook, targetRook);
+			rook.increaseMoveCount();
+		}
+
+		// caso a jogada tenha sido o roque grande, a torre esquerda tem que ser movida
+		// (rei moveu-se horizontalmente duas posições)
+		if (p instanceof King && target.getColumn() == source.getColumn() - 2) {
+
+			// definindo as posições de origem e destino da torre esquerda
+			Position sourceRook = new Position(source.getRow(), source.getColumn() - 4);
+			Position targetRook = new Position(source.getRow(), source.getColumn() - 1);
+
+			// movendo a torre esquerda
+			ChessPiece rook = (ChessPiece) this.board.removePiece(sourceRook);
+			this.board.placePiece(rook, targetRook);
+			rook.increaseMoveCount();
+		}
+
+		// caso a jogada tenha sido en passant, o peão vulnerável terá que ser removido
+		// (peão se moveu diagonalmente para casa vazia)
+		if (p instanceof Pawn && source.getColumn() != target.getColumn() && capturedPiece == null) {
+
+			// inicializando a posição do peão a ser capturado
+			Position vulnerablePawnPosition;
+
+			// se a peça for branca,
+			if (p.getColor() == Color.WHITE) {
+
+				// o peão a ser capturado encontra-se na linha abaixo da posição de destino
+				vulnerablePawnPosition = new Position(target.getRow() + 1, target.getColumn());
+			}
+			// se a peça for preta,
+			else {
+
+				// o peão a ser capturado encontra-se na linha acima da posição de destino
+				vulnerablePawnPosition = new Position(target.getRow() - 1, target.getColumn());
+			}
+
+			// capturando o peão
+			capturedPiece = this.board.removePiece(vulnerablePawnPosition);
+
+			// adicionando na lista de peças capturadas
+			this.capturedPieces.add(capturedPiece);
+
+			// removendo da lista de peças no tabuleiro
+			this.piecesOnTheBoard.remove(capturedPiece);
+		}
+
 		// retornando a peça capturada, se existir
 		return capturedPiece;
+
 	}
 
 	// método responsável por desfazer o movimento das peças na jogada
@@ -179,6 +248,67 @@ public class ChessMatch {
 			// adiciona a peça capturada na lista de peças no tabuleiro
 			this.piecesOnTheBoard.add(capturedPiece);
 		}
+
+		// caso a jogada tenha sido o roque pequeno, o movimento da torre direita tem de
+		// ser desfeito
+		// (rei moveu-se horizontalmente duas posições)
+		if (p instanceof King && target.getColumn() == source.getColumn() + 2) {
+
+			// definindo as posições de origem e destino da torre direita
+			Position sourceRook = new Position(source.getRow(), source.getColumn() + 3);
+			Position targetRook = new Position(source.getRow(), source.getColumn() + 1);
+
+			// movendo a torre direita
+			ChessPiece rook = (ChessPiece) this.board.removePiece(targetRook);
+			this.board.placePiece(rook, sourceRook);
+			rook.decreaseMoveCount();
+		}
+
+		// caso a jogada tenha sido o roque grande, o movimento da torre esquerda tem de
+		// ser desfeito
+		// (rei moveu-se horizontalmente duas posições)
+		if (p instanceof King && target.getColumn() == source.getColumn() - 2) {
+
+			// definindo as posições de origem e destino da torre esquerda
+			Position sourceRook = new Position(source.getRow(), source.getColumn() - 4);
+			Position targetRook = new Position(source.getRow(), source.getColumn() - 1);
+
+			// movendo a torre esquerda
+			ChessPiece rook = (ChessPiece) this.board.removePiece(targetRook);
+			this.board.placePiece(rook, sourceRook);
+			rook.decreaseMoveCount();
+		}
+
+		// caso a jogada tenha sido en passant, o peão vulnerável terá que ser
+		// recolocado no local correto
+		// (peão se moveu diagonalmente para casa vazia)
+		if (p instanceof Pawn && source.getColumn() != target.getColumn()
+				&& capturedPiece == this.enPassantVulnerable) {
+
+			// removendo o peão vulnerável da posição incorreta, colocado pela regra geral
+			// do undoMove
+			ChessPiece wrongPositionPawn = (ChessPiece) this.board.removePiece(target);
+
+			// inicializando a posição do peão vulnerável a ser colocado na posição correta
+			Position vulnerablePawnPosition;
+
+			// se a peça for branca,
+			if (p.getColor() == Color.WHITE) {
+
+				// o peão a ser recolocado encontra-se na linha 5 do xadrez (linha 3 da matriz)
+				vulnerablePawnPosition = new Position(3, target.getColumn());
+			}
+			// se a peça for preta,
+			else {
+
+				// o peão a ser recolocado encontra-se na linha 4 do xadrez (linha 4 da matriz)
+				vulnerablePawnPosition = new Position(4, target.getColumn());
+			}
+
+			// recolocando o peão vulnerável na posição correta
+			this.board.placePiece(wrongPositionPawn, vulnerablePawnPosition);
+		}
+
 	}
 
 	// método responsável por retornar a matriz booleana dos movimentos possíveis
@@ -345,6 +475,9 @@ public class ChessMatch {
 			throw new ChessException("You can't put yourself in check");
 		}
 
+		// obtendo os dados da peça movida no último movimento
+		ChessPiece movedPiece = (ChessPiece) this.board.piece(target);
+
 		// atualizando o estado de cheque da partida
 		this.check = (this.testCheck(this.opponent(currentPlayer))) ? true : false;
 
@@ -359,6 +492,21 @@ public class ChessMatch {
 
 			// troca o turno
 			this.nextTurn();
+		}
+
+		// caso a peça movida seja um peão que tenha se movido duas casas, o mesmo está
+		// vulnerável ao en passant no próximo turno
+		if (movedPiece instanceof Pawn
+				&& (target.getRow() == source.getRow() - 2 || target.getRow() == source.getRow() + 2)) {
+
+			// atribuindo a peça vulnerável
+			this.enPassantVulnerable = movedPiece;
+		}
+		// senão,
+		else {
+
+			// zera a condição
+			this.enPassantVulnerable = null;
 		}
 
 		// retornando a peça capturada, se existir
@@ -376,28 +524,38 @@ public class ChessMatch {
 	private void initialSetup() {
 
 		placeNewPiece('a', 1, new Rook(board, Color.WHITE));
-		placeNewPiece('e', 1, new King(board, Color.WHITE));
+		placeNewPiece('b', 1, new Knight(board, Color.WHITE));
+		placeNewPiece('c', 1, new Bishop(board, Color.WHITE));
+		placeNewPiece('d', 1, new Queen(board, Color.WHITE));
+		placeNewPiece('e', 1, new King(board, Color.WHITE, this));
+		placeNewPiece('f', 1, new Bishop(board, Color.WHITE));
+		placeNewPiece('g', 1, new Knight(board, Color.WHITE));
 		placeNewPiece('h', 1, new Rook(board, Color.WHITE));
-		placeNewPiece('a', 2, new Pawn(board, Color.WHITE));
-		placeNewPiece('b', 2, new Pawn(board, Color.WHITE));
-		placeNewPiece('c', 2, new Pawn(board, Color.WHITE));
-		placeNewPiece('d', 2, new Pawn(board, Color.WHITE));
-		placeNewPiece('e', 2, new Pawn(board, Color.WHITE));
-		placeNewPiece('f', 2, new Pawn(board, Color.WHITE));
-		placeNewPiece('g', 2, new Pawn(board, Color.WHITE));
-		placeNewPiece('h', 2, new Pawn(board, Color.WHITE));
+		placeNewPiece('a', 2, new Pawn(board, Color.WHITE, this));
+		placeNewPiece('b', 2, new Pawn(board, Color.WHITE, this));
+		placeNewPiece('c', 2, new Pawn(board, Color.WHITE, this));
+		placeNewPiece('d', 2, new Pawn(board, Color.WHITE, this));
+		placeNewPiece('e', 2, new Pawn(board, Color.WHITE, this));
+		placeNewPiece('f', 2, new Pawn(board, Color.WHITE, this));
+		placeNewPiece('g', 2, new Pawn(board, Color.WHITE, this));
+		placeNewPiece('h', 2, new Pawn(board, Color.WHITE, this));
 
 		placeNewPiece('a', 8, new Rook(board, Color.BLACK));
-		placeNewPiece('e', 8, new King(board, Color.BLACK));
+		placeNewPiece('b', 8, new Knight(board, Color.BLACK));
+		placeNewPiece('c', 8, new Bishop(board, Color.BLACK));
+		placeNewPiece('d', 8, new Queen(board, Color.BLACK));
+		placeNewPiece('e', 8, new King(board, Color.BLACK, this));
+		placeNewPiece('f', 8, new Bishop(board, Color.BLACK));
+		placeNewPiece('g', 8, new Knight(board, Color.BLACK));
 		placeNewPiece('h', 8, new Rook(board, Color.BLACK));
-		placeNewPiece('a', 7, new Pawn(board, Color.BLACK));
-		placeNewPiece('b', 7, new Pawn(board, Color.BLACK));
-		placeNewPiece('c', 7, new Pawn(board, Color.BLACK));
-		placeNewPiece('d', 7, new Pawn(board, Color.BLACK));
-		placeNewPiece('e', 7, new Pawn(board, Color.BLACK));
-		placeNewPiece('f', 7, new Pawn(board, Color.BLACK));
-		placeNewPiece('g', 7, new Pawn(board, Color.BLACK));
-		placeNewPiece('h', 7, new Pawn(board, Color.BLACK));
+		placeNewPiece('a', 7, new Pawn(board, Color.BLACK, this));
+		placeNewPiece('b', 7, new Pawn(board, Color.BLACK, this));
+		placeNewPiece('c', 7, new Pawn(board, Color.BLACK, this));
+		placeNewPiece('d', 7, new Pawn(board, Color.BLACK, this));
+		placeNewPiece('e', 7, new Pawn(board, Color.BLACK, this));
+		placeNewPiece('f', 7, new Pawn(board, Color.BLACK, this));
+		placeNewPiece('g', 7, new Pawn(board, Color.BLACK, this));
+		placeNewPiece('h', 7, new Pawn(board, Color.BLACK, this));
 
 	}
 

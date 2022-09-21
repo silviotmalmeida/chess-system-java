@@ -5,11 +5,11 @@ import boardgame.Position;
 import chess.ChessPiece;
 import chess.Color;
 
-// classe que representa a torre
-public class Rook extends ChessPiece {
+//classe que representa a rainha
+public class Queen extends ChessPiece {
 
 	// construtor
-	public Rook(Board board, Color color) {
+	public Queen(Board board, Color color) {
 		super(board, color);
 	}
 
@@ -17,8 +17,8 @@ public class Rook extends ChessPiece {
 	@Override
 	public String toString() {
 
-		// imprimindo a letra R para representar a torre
-		return "R";
+		// imprimindo a letra Q para representar a rainha
+		return "Q";
 	}
 
 	// método que calcula uma matriz booleana dos movimentos possíveis para a peça
@@ -112,6 +112,94 @@ public class Rook extends ChessPiece {
 
 			// move mais uma posição à direita
 			p.setColumn(p.getColumn() + 1);
+		}
+
+		// se a posição for válida, porém estiver ocupada por peça adversária
+		if (this.getBoard().positionExists(p) && isThereOpponentPiece(p)) {
+			// atribui true na matriz de posições possíveis
+			mat[p.getRow()][p.getColumn()] = true;
+		}
+
+		/*
+		 * verificando as posições NOROESTE no tabuleiro
+		 */
+		// posicionando na posição imediatamente à noroeste da peça
+		p.setValues(this.position.getRow() - 1, this.position.getColumn() - 1);
+
+		// enquanto a posição for válida e estiver vaga
+		while (this.getBoard().positionExists(p) && !this.getBoard().thereIsAPiece(p)) {
+
+			// atribui true na matriz de posições possíveis
+			mat[p.getRow()][p.getColumn()] = true;
+
+			// move mais uma posição noroeste
+			p.setValues(p.getRow() - 1, p.getColumn() - 1);
+		}
+
+		// se a posição for válida, porém estiver ocupada por peça adversária
+		if (this.getBoard().positionExists(p) && isThereOpponentPiece(p)) {
+			// atribui true na matriz de posições possíveis
+			mat[p.getRow()][p.getColumn()] = true;
+		}
+
+		/*
+		 * verificando as posições NORDESTE no tabuleiro
+		 */
+		// posicionando na posição imediatamente à nordeste da peça
+		p.setValues(this.position.getRow() - 1, this.position.getColumn() + 1);
+
+		// enquanto a posição for válida e estiver vaga
+		while (this.getBoard().positionExists(p) && !this.getBoard().thereIsAPiece(p)) {
+
+			// atribui true na matriz de posições possíveis
+			mat[p.getRow()][p.getColumn()] = true;
+
+			// move mais uma posição nordeste
+			p.setValues(p.getRow() - 1, p.getColumn() + 1);
+		}
+
+		// se a posição for válida, porém estiver ocupada por peça adversária
+		if (this.getBoard().positionExists(p) && isThereOpponentPiece(p)) {
+			// atribui true na matriz de posições possíveis
+			mat[p.getRow()][p.getColumn()] = true;
+		}
+
+		/*
+		 * verificando as posições À SUDESTE no tabuleiro
+		 */
+		// posicionando na posição imediatamente à sudeste da peça
+		p.setValues(this.position.getRow() + 1, this.position.getColumn() + 1);
+
+		// enquanto a posição for válida e estiver vaga
+		while (this.getBoard().positionExists(p) && !this.getBoard().thereIsAPiece(p)) {
+
+			// atribui true na matriz de posições possíveis
+			mat[p.getRow()][p.getColumn()] = true;
+
+			// move mais uma posição sudeste
+			p.setValues(p.getRow() + 1, p.getColumn() + 1);
+		}
+
+		// se a posição for válida, porém estiver ocupada por peça adversária
+		if (this.getBoard().positionExists(p) && isThereOpponentPiece(p)) {
+			// atribui true na matriz de posições possíveis
+			mat[p.getRow()][p.getColumn()] = true;
+		}
+
+		/*
+		 * verificando as posições À SUDOESTE no tabuleiro
+		 */
+		// posicionando na posição imediatamente à sudoeste da peça
+		p.setValues(this.position.getRow() + 1, this.position.getColumn() - 1);
+
+		// enquanto a posição for válida e estiver vaga
+		while (this.getBoard().positionExists(p) && !this.getBoard().thereIsAPiece(p)) {
+
+			// atribui true na matriz de posições possíveis
+			mat[p.getRow()][p.getColumn()] = true;
+
+			// move mais uma posição sudoeste
+			p.setValues(p.getRow() + 1, p.getColumn() - 1);
 		}
 
 		// se a posição for válida, porém estiver ocupada por peça adversária
