@@ -1,5 +1,6 @@
 package application;
 
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.List;
@@ -60,6 +61,24 @@ public class Program {
 				// se existir peça adversária capturada, adiciona-a na lista de peças capturadas
 				if (capturedPiece != null) {
 					captured.add(capturedPiece);
+				}
+
+				// se existir peça a ser promovida, solicita o tipo de peça a ser incluída
+				if (chessMatch.getPromoted() != null) {
+
+					// solicitando a opção do jogador
+					System.out.print("Enter piece for promotion (B/N/R/Q)");
+					String type = sc.nextLine().toUpperCase();
+
+					// enquanto o tipo da promoção for inválido, repete a solicitação de opção do
+					// jogador
+					while (!type.equals("B") && !type.equals("N") && !type.equals("R") && !type.equals("Q")) {
+						System.out.print("Invalid type! Enter piece for promotion (B/N/R/Q)");
+						type = sc.nextLine().toUpperCase();
+					}
+
+					// promovendo o peão
+					chessMatch.replacePromotedPiece(type);
 				}
 
 			}

@@ -41,6 +41,9 @@ public class ChessMatch {
 	// registro de peão vulnerável à jogada en Passant
 	private ChessPiece enPassantVulnerable;
 
+	// registro de peão promovido
+	private ChessPiece promoted;
+
 	// construtor
 	public ChessMatch() {
 
@@ -82,6 +85,10 @@ public class ChessMatch {
 
 	public ChessPiece getEnPassantVulnerable() {
 		return enPassantVulnerable;
+	}
+
+	public ChessPiece getPromoted() {
+		return promoted;
 	}
 	// fim dos getters and setters
 
@@ -447,6 +454,58 @@ public class ChessMatch {
 		return true;
 	}
 
+	// método responsável por retornar uma peça a partir de uma letra e uma cor
+	private ChessPiece newPiece(String type, Color color) {
+
+		if (type.equals("B"))
+			return new Bishop(this.board, color);
+		if (type.equals("N"))
+			return new Knight(this.board, color);
+		if (type.equals("Q"))
+			return new Queen(this.board, color);
+		if (type.equals("R"))
+			return new Rook(this.board, color);
+		if (type.equals("K"))
+			return new King(this.board, color, this);
+
+		return new Pawn(this.board, color, this);
+	}
+
+	public ChessPiece replacePromotedPiece(String type) {
+
+		// se não existir peça a ser promovida, lança uma exceção
+		if (this.promoted == null) {
+			throw new IllegalStateException("There is no piece to be promoted");
+		}
+
+		// se o tipo da promoção for inválido, retorna a opção default provisória Q já
+		// aplicada
+		if (!type.equals("B") && !type.equals("N") && !type.equals("R") && !type.equals("Q")) {
+			return this.promoted;
+		}
+
+		// obtendo a posição do peão a ser promovido
+		Position pos = this.promoted.getChessPosition().toPosition();
+
+		// removendo o peão
+		Piece p = this.board.removePiece(pos);
+
+		// atualizando a lista de peças no tabuleiro
+		this.piecesOnTheBoard.remove(p);
+
+		// criando a nova peça a substituir o peão promovido
+		ChessPiece newPiece = this.newPiece(type, this.promoted.getColor());
+
+		// colocando a nova peça no tabuleiro
+		this.board.placePiece(newPiece, pos);
+
+		// atualizando a lista de peças no tabuleiro
+		this.piecesOnTheBoard.add(newPiece);
+
+		return newPiece;
+
+	}
+
 	// método responsável por realizar uma jogada no xadrez
 	public ChessPiece performChessMove(ChessPosition sourcePosition, ChessPosition targetPosition) {
 
@@ -477,6 +536,24 @@ public class ChessMatch {
 
 		// obtendo os dados da peça movida no último movimento
 		ChessPiece movedPiece = (ChessPiece) this.board.piece(target);
+
+		// analisando a possibilidade de promoção de peões
+		// zerando o registro de peça promovida anteriormente
+		this.promoted = null;
+
+		// se as condições de promoção forem atendidas
+		if (movedPiece instanceof Pawn && ((movedPiece.getColor() == Color.WHITE && target.getRow() == 0)
+				|| (movedPiece.getColor() == Color.BLACK && target.getRow() == 7))) {
+
+			// registrando o peão a ser promovido
+			this.promoted = (ChessPiece) this.board.piece(target);
+
+			// promovendo o peão por uma rainha como default provisório
+			// ao final do turno o jogador fará a seleção da peça definitiva a ser
+			// adicionada
+			this.promoted = this.replacePromotedPiece("Q");
+
+		}
 
 		// atualizando o estado de cheque da partida
 		this.check = (this.testCheck(this.opponent(currentPlayer))) ? true : false;
