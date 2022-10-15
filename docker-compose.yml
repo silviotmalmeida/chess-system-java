@@ -1,0 +1,20 @@
+version: '3.5'
+
+services:
+
+  #nome do servico
+  chess-system-java:
+
+    #construido a partir de uma imagem oficial
+    image: eclipse-temurin:17-jdk-focal
+    
+    #nome do conteiner
+    container_name: chess-system-java
+
+    #pastas compartilhadas
+    volumes:
+      #pasta do codigo fonte da aplicacao
+      - "./chess-system:/app"
+  
+    #artifício para manter o container aberto
+    tty: true
